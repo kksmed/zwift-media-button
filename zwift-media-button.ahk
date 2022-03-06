@@ -48,6 +48,7 @@ VolumeStep = 3
 VolumeDisplayTime = 2500
 VolumeProgressbarOptions = B ZH50 ZX0 ZY0 W250 X100 Y100 CBRed CWBlack
 GlobalDebug := 0
+CurrentView := 1
 
 ; MAIN ROUTINE
 ; =============== 
@@ -58,82 +59,47 @@ ElevateScript()
 ; Initialisation
 SetKeyDelay, % KeyDelayFactor*10, % KeyDelayFactor*10
 
-
 Media_Play_Pause::
-  KeyWait Media_Play_Pause, T0.5
-  if (ERRORLEVEL = 1) {   
-    ; press and hold detected, now show actions menu
-    ZwiftSendKey("{Up}")
-	SetButtonModeActionMenu()
-	KeyWait Media_Play_Pause, T2   ; Wait until key is released (with timeout just in case)
-  } else {
-    ZwiftSendKey("{Enter}")
-  }
+  ; Use power-up
+  ; to avoid accidentally activate powerup, this key handles *only* power up
+  ZwiftSendKey("{Space}")
 Return
 
-Media_Next::
-  global ButtonMode
-  if (ButtonMode = 1) {
-    VolumeUp()
-  } else if (ButtonMode = 2) {
-    KeyWait Media_Next, T0.15  ; allow holding next to navigate menu, but not too fast
-    ZwiftSendKey("{Right}")
-    SetButtonModeActionMenu()
-  }	else {
-    KeyWait Media_Next, T0.5
-    if (ERRORLEVEL = 1) {
-      SwitchMiniMap()
-	  KeyWait Media_Next, T2  ; Wait until key is released to avoid cycling through views 
-    } else {
-      ZwiftSendKey("{Right}")
-	}  
-  }    
-Return
+; Media_next is unbound to keep the "skip sound track" functionality
+; Media_Next::
+; -- Do something...
+; Return
 
 Media_Prev::
-  global ButtonMode
-  if (ButtonMode = 1) {
-    VolumeDown()
-  } else if (ButtonMode = 2) {
-    KeyWait Media_Prev, T0.15  ; allow holding prev to navigate menu, but not too fast
-    ZwiftSendKey("{Left}")
-    SetButtonModeActionMenu()
-  } else {
-    KeyWait Media_Prev, T0.5
-    if (ERRORLEVEL = 1) {
-      ButtonMode := 1   ; ButtonMode 1 adjust volume
-	  ShowVolumeBar()
-	  KeyWait Media_Prev, T2  ; Wait until key is released
-    } else {
-      ZwiftSendKey("{Left}")
-	}  
-  }	
+  ;  Toogle view between 1 (normal/default) and 6 (looking back)
+  ToogleView()
 Return
 
 Volume_Up::
   ; This key handles RideOn!
   KeyWait Volume_Up, T0.5
   if (ERRORLEVEL = 1) {
-    ; Press and hold detected
+    ; Press and hold detected - fan view rider in front and give "Ride on!"
     SendFanRideOn()
   } else {
+    ; Click to give "Ride on!" (Zwift must suggest this)
     ClickRideOn()
     ZwiftSendKey("{F3}")
   }
 Return
 
 Volume_Down::
-  ; to avoid accidentally activate powerup, this key handles *only* power up
-  ZwiftSendKey("{Space}") 
+  SwitchMiniMap()
 Return
 
-+Volume_Up::
-  VolumeUp()
-Return
-
-+Volume_Down::
-  VolumeDown()
-Return
+; Disabled the shift + Vol up/down 
+; +Volume_Up::
+;   VolumeUp()
+; Return
+;
+; +Volume_Down::
+;   VolumeDown()
+; Return
 
 +^Q::
   ExitApp
@@ -190,28 +156,28 @@ SendFanRideOn() {
 
 ; Send Zwift keystroke(s)
 ZwiftSendKey(message) {
-	global ZwiftWindow
-	; Only send the key if Zwift is open
-	if WinExist(ZwiftWindow){
-		ControlSend, ahk_parent, % message, % ZwiftWindow
-	}
+  global ZwiftWindow
+  ; Only send the key if Zwift is open
+  if WinExist(ZwiftWindow) {
+    ControlSend, ahk_parent, % message, % ZwiftWindow
+  }
 }
 
 ; Restart this script in Administrator mode if not started as Administrator
 ElevateScript() {
-	full_command_line := DllCall("GetCommandLine", "str")
+  full_command_line := DllCall("GetCommandLine", "str")
 
-	if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)"))
-	{
-		try
-		{
-			if A_IsCompiled
-				Run *RunAs "%A_ScriptFullPath%" /restart
-			else
-				Run *RunAs "%A_AhkPath%" /restart "%A_ScriptFullPath%"
-		}
-		ExitApp
-	}
+  if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)"))
+  {
+    try
+    {
+      if A_IsCompiled
+        Run *RunAs "%A_ScriptFullPath%" /restart
+      else
+        Run *RunAs "%A_AhkPath%" /restart "%A_ScriptFullPath%"
+    }
+    ExitApp
+  }
 }
 
 ClickRideOn()
@@ -223,10 +189,10 @@ ClickRideOn()
   GetRelativePosition(1555/1920 , 348/1147, XX1, YY1)
   GetRelativePosition(1555/1920 , 1111/1147, XX2, YY2)
 
-	XX1 := Round(XX1)
-	XX2 := Round(XX2)
-	YY1 := Round(YY1)
-	YY2 := Round(YY2)
+  XX1 := Round(XX1)
+  XX2 := Round(XX2)
+  YY1 := Round(YY1)
+  YY2 := Round(YY2)
 
   if ( globaldebug <> 0 ) {
     WinActivate, ahk_class GLFW30
@@ -246,14 +212,14 @@ ClickRideOn()
   if ( ERRORLEVEL = 0 ) {
     WinActivate, ahk_class GLFW30
     CoordMode, Mouse, Client
-	y := y + 3
+    y := y + 3
 
-	if ( globaldebug <> 0 ) {
-		CoordMode, Mouse, Client
-		MouseMove, %x%, %y%
-	} else {
-		MouseClick,, %x%, %y%
-	}
+    if ( globaldebug <> 0 ) {
+      CoordMode, Mouse, Client
+      MouseMove, %x%, %y%
+    } else {
+      MouseClick,, %x%, %y%
+    }
   }
 }
 
@@ -269,10 +235,9 @@ GetRelativePosition(a, b, ByRef xx, ByRef yy)
   GetClientSize(hwnd, W, H)
 
   if ( a > (W/2) and (W/H) > (1920/1147)) {
-	; wide screen
-	XX := W - ((H*1920/1147) - round(a*(H*1920/1147)))
+    ; wide screen
+    XX := W - ((H*1920/1147) - round(a*(H*1920/1147)))
     YY := round(b*H)
-
   } else {
     ;; MsgBox Width = %w% Height = %h%
     XX := round(a*W)
@@ -281,27 +246,38 @@ GetRelativePosition(a, b, ByRef xx, ByRef yy)
 
 }
 
-GetClientSize(hwnd, ByRef w, ByRef h)
-{
-    VarSetCapacity(rc, 16)
-    DllCall("GetClientRect", "uint", hwnd, "uint", &rc)
-    w := NumGet(rc, 8, "int")
-    h := NumGet(rc, 12, "int")
+GetClientSize(hwnd, ByRef w, ByRef h) {
+  VarSetCapacity(rc, 16)
+  DllCall("GetClientRect", "uint", hwnd, "uint", &rc)
+  w := NumGet(rc, 8, "int")
+  h := NumGet(rc, 12, "int")
+}
+
+ToogleView() {
+  ; Changing view between 1 (normal/default) and 6 (look back)
+  global CurrentView
+  if (CurrentView = 1) {
+    ZwiftSendKey("6")
+    CurrentView = 6
+  } else {
+    ZwiftSendKey("1")
+    CurrentView = 1
+  }
 }
 
 ;------------------
 ; Handling volume
 
 VolumeUp() {
-    global VolumeStep
-    SoundSet, +%VolumeStep%
-	ShowVolumeBar()
+  global VolumeStep
+  SoundSet, +%VolumeStep%
+  ShowVolumeBar()
 }
 
 VolumeDown() {
     global VolumeStep
     SoundSet, -%VolumeStep%
-	ShowVolumeBar()
+  ShowVolumeBar()
 }
 
 ShowVolumeBar() {
