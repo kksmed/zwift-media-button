@@ -1,31 +1,33 @@
 ﻿/*
 
-$Date: 2018/02/25 16:58:24 $
-Version 1.0.3
-
-Author:
-Jesper Rosenlund Nielsen, Jarl Petter Kvalsvik
-http://zwifthacks.com
-
-Script:
-zwift-media-button
-
-Functionality:
-Maps keys on media-button to Zwift-input, effectively making it a Zwift game-controller.
-
-Usage:
-Script must be run as Administrator to work. If not it will try to launch itself in Administrator mode.
-
-(An alternative solution would be to add the option 'Run with UI access' to context menus (via the AutoHotkey Setup) and use that option to launch the script)
-
-
-License:
-CC NY-NC
-https://creativecommons.org/licenses/by-nc/4.0/
-
+.: Original script
+. 
+. $Date: 2018/02/25 16:58:24 $
+. Version 1.0.3
+. 
+. Author:
+. Jesper Rosenlund Nielsen, Jarl Petter Kvalsvik
+. http://zwifthacks.com
+. 
+. Script:
+. zwift-media-button
+. 
+. Functionality:
+. Maps keys on media-button to Zwift-input, effectively making it a Zwift game-controller.
+. 
+. Usage:
+. Script must be run as Administrator to work. If not it will try to launch itself in Administrator mode.
+. 
+. (An alternative solution would be to add the option 'Run with UI access' to context menus (via the AutoHotkey Setup) and use that option to launch the script)
+. 
+. 
+. License:
+. CC NY-NC
+. https://creativecommons.org/licenses/by-nc/4.0/
+ 
 */
 
-; #Warn  ; Enable warnings to assist with detecting common errors.
+#Warn  ; Enable warnings to assist with detecting common errors.
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
