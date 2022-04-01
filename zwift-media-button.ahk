@@ -76,20 +76,11 @@ Media_Prev::
 Return
 
 Volume_Up::
-  ; This key handles RideOn!
-  KeyWait Volume_Up, T0.5
-  if (ERRORLEVEL = 1) {
-    ; Press and hold detected - fan view rider in front and give "Ride on!"
-    SendFanRideOn()
-  } else {
-    ; Click to give "Ride on!" (Zwift must suggest this)
-    ClickRideOn()
-    ZwiftSendKey("{F3}")
-  }
+  ChangeBike(1)
 Return
 
 Volume_Down::
-  SwitchMiniMap()
+  ChangeBike(-1)
 Return
 
 ; Disabled the shift + Vol up/down 
@@ -253,7 +244,8 @@ GetClientSize(hwnd, ByRef w, ByRef h) {
   h := NumGet(rc, 12, "int")
 }
 
-ToogleView() {
+ToogleView()
+{
   ; Changing view between 1 (normal/default) and 6 (look back)
   global CurrentView
   if (CurrentView = 1) {
@@ -263,6 +255,51 @@ ToogleView() {
     ZwiftSendKey("1")
     CurrentView = 1
   }
+}
+
+ChangeBike(n)
+{
+  SleepDelay := 10 ; Wait after each keystroke (in ms)
+
+  ZwiftSendKey("{Esc}") ; Exit pairing screen
+  Sleep, SleepDelay
+  ZwiftSendKey("t") ; Go to the garage
+  Sleep, SleepDelay
+  ZwiftSendKey("{Enter}") ; Enter bike choice
+
+  ; Wait additional time for bikes to load
+  Sleep, 500
+  
+  ; Scroll to bike
+  MoveKey := "{Up}"
+  if (n < 0)
+  {
+    MoveKey := "{Down}"
+    n := n * -1
+  }
+  Loop, % n
+  {
+    ZwiftSendKey(MoveKey)
+    Sleep, SleepDelay
+  }
+
+  ZwiftSendKey("{Enter}") ; Equip bike
+  Sleep, SleepDelay
+
+  ZwiftSendKey("{Esc}") ; Exit bike choice
+  Sleep, SleepDelay
+
+  ; Wait additional time
+  Sleep, 500
+
+  ZwiftSendKey("{Esc}") ; Exit user customization
+  Sleep, SleepDelay
+
+  ; Wait additional time
+  Sleep, 500
+
+  ZwiftSendKey("{Esc}") ; Exit garage
+  Sleep, SleepDelay
 }
 
 ;------------------
